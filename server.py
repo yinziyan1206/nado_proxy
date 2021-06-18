@@ -4,7 +4,7 @@ import logging
 import socket
 import threading
 
-import utils
+from . import utils
 
 TIMEOUT = 1000
 BUF_SIZE = 4096
