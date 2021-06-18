@@ -68,11 +68,3 @@ def main(ip, port):
         conn, addr = server.accept()
         _logger.debug(addr)
         threading.Thread(target=handle, args=(conn,)).start()
-
-
-if __name__ == '__main__':
-    logging.basicConfig(
-        level='INFO',
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-    )
-    main(HOST, PORT)
