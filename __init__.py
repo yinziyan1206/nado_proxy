@@ -2,6 +2,6 @@
 __author__ = 'ziyan.yin'
 __version__ = '1.0.1'
 
-from .server import main as server
+from .server import main as proxy
 
-__all__ = ['server']
+__all__ = ['proxy']

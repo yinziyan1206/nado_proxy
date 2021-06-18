@@ -18,7 +18,7 @@ def communicate(client, server):
     try:
         while data := client.recv(BUF_SIZE):
             server.sendall(data)
-    except Exception:
+    except ConnectionError:
         pass
     finally:
         server.close()
