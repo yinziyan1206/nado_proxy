@@ -97,7 +97,3 @@ def main(ip, port):
         conn, addr = server.accept()
         _logger.debug(addr)
         threading.Thread(target=handle, args=(conn,)).start()
-
-
-if __name__ == '__main__':
-    main(HOST, PORT)
