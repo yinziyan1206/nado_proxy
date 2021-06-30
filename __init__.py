@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 __author__ = 'ziyan.yin'
-__version__ = '1.0.2'
+__version__ = '1.0.3'
 
 from .server import main as proxy
 from .async_server import main as async_proxy

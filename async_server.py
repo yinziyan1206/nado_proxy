@@ -25,6 +25,7 @@ async def accept(reader, writer):
     lines = await reader.readuntil(b'\r\n\r\n')
     headers = lines[:-4].decode().split('\r\n')
     method, path, args = headers[0].split(' ')
+    lines = '\r\n'.join(i for i in headers if not i.startswith('Proxy-'))
 
     async def reply(data, wait=False):
         writer.write(data)
@@ -43,8 +44,9 @@ async def http_accept(method, path, args, lines, reply):
         message = f"{args} 200 Connection Established\r\nConnection: close\r\n\r\n".encode()
         return address, lambda writer: reply(message)
     else:
-        address = get_addr(url.hostname)
-        message = f'{method} {url.geturl()} {args}\r\n{lines}\r\n\r\n'.encode()
+        address = url.hostname, url.port
+        new_path = url._replace(netloc='', scheme='').geturl()
+        message = f'{method} {new_path} {args}\r\n{lines}\r\n\r\n'.encode()
 
         async def connected(writer):
             writer.write(message)
