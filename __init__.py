@@ -3,5 +3,6 @@ __author__ = 'ziyan.yin'
 __version__ = '1.0.2'
 
 from .server import main as proxy
+from .async_server import main as async_proxy
 
-__all__ = ['proxy']
+__all__ = ['proxy', 'async_proxy']

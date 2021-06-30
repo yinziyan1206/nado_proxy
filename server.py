@@ -87,12 +87,23 @@ def handle(client):
         client.close()
 
 
-def main(ip, port):
+def main(**kwargs):
+    global HOST
+    global PORT
+    global TIMEOUT
+
+    if 'host' in kwargs:
+        HOST = kwargs['host']
+    if 'port' in kwargs:
+        PORT = kwargs['port']
+    if 'timeout' in kwargs:
+        TIMEOUT = kwargs['timeout']
+
     server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((ip, port))
+    server.bind((HOST, PORT))
     server.listen(10)
-    _logger.info(f'proxy start on {port}')
+    _logger.info(f'proxy start on {PORT}')
     while True:
         conn, addr = server.accept()
         _logger.debug(addr)
