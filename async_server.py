@@ -44,7 +44,7 @@ async def http_accept(method, path, args, lines, reply):
         message = f"{args} 200 Connection Established\r\nConnection: close\r\n\r\n".encode()
         return address, lambda writer: reply(message)
     else:
-        address = url.hostname, url.port
+        address = url.hostname, url.port if url.port else 80
         new_path = url._replace(netloc='', scheme='').geturl()
         message = f'{method} {new_path} {args}\r\n{lines}\r\n\r\n'.encode()
 
