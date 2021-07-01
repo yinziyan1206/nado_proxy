@@ -29,7 +29,6 @@ async def accept(reader, writer):
     method, path, args = headers[0].split(' ')
     lines = '\r\n'.join(i for i in headers if not i.startswith('Proxy-'))
     headers = dict(i.split(': ', 1) for i in headers if ': ' in i)
-    print(headers)
 
     async def reply(data, wait=False):
         writer.write(data)
