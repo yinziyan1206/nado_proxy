@@ -7,6 +7,8 @@ from urllib import parse
 TIMEOUT = 1000
 HOST = '0.0.0.0'
 PORT = 11212
+WHITE_LIST = None
+AUTH = None
 
 logger = logging.getLogger('proxy')
 
@@ -26,19 +28,29 @@ async def accept(reader, writer):
     headers = lines[:-4].decode().split('\r\n')
     method, path, args = headers[0].split(' ')
     lines = '\r\n'.join(i for i in headers if not i.startswith('Proxy-'))
+    headers = dict(i.split(': ', 1) for i in headers if ': ' in i)
+    print(headers)
 
     async def reply(data, wait=False):
         writer.write(data)
         if wait:
             await writer.drain()
 
-    return await http_accept(method, path, args, lines, reply)
+    return await http_accept(method, path, args, lines, reply, headers.get('Proxy-Authorization'))
 
 
-async def http_accept(method, path, args, lines, reply):
+async def http_accept(method, path, args, lines, reply, auth):
     url = parse.urlparse(path)
     if method == 'GET' and not url.hostname:
         raise ConnectionError(f'404 {method} {url.path}')
+    if AUTH:
+        if auth not in AUTH:
+            await reply(
+                f'{args} 407 Proxy Authentication Required\r\n'
+                f'Connection: close\r\nProxy-Authenticate: Basic realm="simple"\r\n\r\n'.encode(),
+                wait=True
+            )
+            raise ConnectionError('Unauthorized')
     elif method == 'CONNECT':
         address = get_addr(path)
         message = f"{args} 200 Connection Established\r\nConnection: close\r\n\r\n".encode()
@@ -71,6 +83,9 @@ async def pipe(reader, writer):
 
 async def handle(reader, writer):
     try:
+        client_ip, client_port = writer.get_extra_info('peername')
+        if WHITE_LIST and client_ip not in WHITE_LIST:
+            raise ConnectionRefusedError()
         address, connected = await accept(reader, writer)
         logger.info(f"redirect: {address}")
         reader_remote, writer_remote = await asyncio.wait_for(asyncio.open_connection(*address), timeout=TIMEOUT)
@@ -86,6 +101,8 @@ def main(**kwargs):
     global HOST
     global PORT
     global TIMEOUT
+    global WHITE_LIST
+    global AUTH
 
     if 'host' in kwargs:
         HOST = kwargs['host']
@@ -93,6 +110,10 @@ def main(**kwargs):
         PORT = kwargs['port']
     if 'timeout' in kwargs:
         TIMEOUT = kwargs['timeout']
+    if 'white_list' in kwargs:
+        WHITE_LIST = kwargs['white_list']
+    if 'auth' in kwargs:
+        AUTH = kwargs['auth']
 
     loop = asyncio.get_event_loop()
     process = asyncio.start_server(handle, HOST, PORT)
