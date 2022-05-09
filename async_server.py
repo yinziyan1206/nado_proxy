@@ -42,15 +42,14 @@ async def http_accept(method, path, args, lines, reply, auth):
     url = parse.urlparse(path)
     if method == 'GET' and not url.hostname:
         raise ConnectionError(f'404 {method} {url.path}')
-    if AUTH:
-        if auth not in AUTH:
-            await reply(
-                f'{args} 407 Proxy Authentication Required\r\n'
-                f'Connection: close\r\nProxy-Authenticate: Basic realm="simple"\r\n\r\n'.encode(),
-                wait=True
-            )
-            raise ConnectionError('Unauthorized')
-    elif method == 'CONNECT':
+    if AUTH and auth not in AUTH:
+        await reply(
+            f'{args} 407 Proxy Authentication Required\r\n'
+            f'Connection: close\r\nProxy-Authenticate: Basic realm="simple"\r\n\r\n'.encode(),
+            wait=True
+        )
+        raise ConnectionError('Unauthorized')
+    if method == 'CONNECT':
         address = get_addr(path)
         message = f"{args} 200 Connection Established\r\nConnection: close\r\n\r\n".encode()
         return address, lambda writer: reply(message)
